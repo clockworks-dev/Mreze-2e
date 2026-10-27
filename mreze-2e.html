@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Ethernet — interaktivna nastava</title>
+    <style>
+        :root {
+            --bg: #0b1221;
+            --card: #152238;
+            --text: #eaf1ff;
+            --muted: #adbbd2;
+            --accent: #52dac7;
+            --blue: #73aaff
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font: clamp(16px, 1.6vw, 22px)/1.5 system-ui, sans-serif
+        }
+
+        header {
+            height: 65px;
+            padding: 15px 4%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #293750;
+            font-size: 14px
+        }
+
+        .tag {
+            color: var(--accent)
+        }
+
+        main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 25px 4% 100px
+        }
+
+        .slide {
+            display: none;
+            animation: fade .25s
+        }
+
+        .slide.active {
+            display: block
+        }
+
+        h1 {
+            font-size: clamp(32px, 5vw, 62px);
+            line-height: 1.12;
+            margin: 20px 0
+        }
+
+        h2 {
+            font-size: clamp(26px, 3.5vw, 44px);
+            line-height: 1.2
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 0
+        }
+
+        p,
+        li {
+            max-width: 1000px
+        }
+
+        li {
+            margin: 10px 0
+        }
+
+        .lead {
+            color: var(--muted);
+            font-size: 1.15em
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px
+        }
+
+        .card {
+            padding: 24px;
+            background: var(--card);
+            border: 1px solid #293750;
+            border-radius: 18px;
+            margin: 12px 0
+        }
+
+        .callout {
+            border-left: 4px solid var(--accent);
+            padding: 16px 22px;
+            background: #122e35;
+            margin: 22px 0
+        }
+
+        code,
+        pre {
+            font-family: ui-monospace, monospace;
+            color: #9cebdc
+        }
+
+        pre {
+            background: #080e19;
+            padding: 20px;
+            border-radius: 12px;
+            overflow: auto
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9em
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #34445e
+        }
+
+        th {
+            color: var(--accent)
+        }
+
+        button,
+        select {
+            font: inherit;
+            border: 1px solid #3b526e;
+            border-radius: 9px;
+            padding: 9px 15px;
+            background: #1a2c45;
+            color: var(--text);
+            cursor: pointer
+        }
+
+        button:hover {
+            border-color: var(--accent)
+        }
+
+        button:disabled {
+            opacity: .4;
+            cursor: default
+        }
+
+        .primary {
+            background: #17675f
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0b1221ed;
+            border-top: 1px solid #293750;
+            padding: 12px 4%;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 10
+        }
+
+        footer span {
+            margin-right: auto;
+            font-size: 14px
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--accent);
+            transition: width .2s;
+            z-index: 20
+        }
+
+        .frame {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap
+        }
+
+        .frame div {
+            background: #22415c;
+            border: 1px solid #608eab;
+            padding: 18px 12px;
+            flex: 1;
+            text-align: center;
+            min-width: 130px
+        }
+
+        .frame small {
+            display: block;
+            color: #b6cbdf
+        }
+
+        .network {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 14px;
+            padding: 25px 0;
+            flex-wrap: wrap
+        }
+
+        .device {
+            text-align: center;
+            background: #20334d;
+            padding: 20px;
+            border-radius: 14px;
+            border: 2px solid #5483aa
+        }
+
+        .switch {
+            border-color: var(--accent)
+        }
+
+        .choices {
+            display: grid;
+            gap: 10px
+        }
+
+        .choices button {
+            text-align: left
+        }
+
+        .feedback {
+            min-height: 40px;
+            color: var(--accent);
+            margin-top: 14px
+        }
+
+        details {
+            background: #14243a;
+            padding: 14px;
+            border-radius: 10px;
+            margin-top: 16px
+        }
+
+        summary {
+            cursor: pointer;
+            color: var(--accent)
+        }
+
+        a {
+            color: var(--blue)
+        }
+
+        .small {
+            font-size: .8em;
+            color: var(--muted)
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        @media(max-width:650px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+
+            header {
+                font-size: 11px
+            }
+
+            footer {
+                gap: 6px
+            }
+
+            footer button {
+                font-size: 13px;
+                padding: 9px
+            }
+
+            table {
+                font-size: 13px
+            }
+
+            td,
+            th {
+                padding: 7px
+            }
+
+            main {
+                padding-top: 12px
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                color: #111;
+                font-size: 14px
+            }
+
+            header,
+            footer,
+            .progress,
+            button,
+            select {
+                display: none !important
+            }
+
+            main {
+                padding: 0
+            }
+
+            .slide {
+                display: block !important;
+                break-after: page;
+                page-break-after: always
+            }
+
+            .card,
+            details,
+            .callout {
+                background: #f3f5f7;
+                color: #111;
+                border-color: #aaa
+            }
+
+            h3,
+            code,
+            pre,
+            .lead,
+            .small {
+                color: #234
+            }
+
+            pre {
+                background: #eee
+            }
+
+            .frame div,
+            .device {
+                background: #eee;
+                color: #111
+            }
+
+            details>* {
+                display: block
+            }
+
+            a {
+                color: #234
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress" id="progress"></div>
+    <header><span>RAČUNALNE MREŽE · 2. RAZRED</span><span class="tag">· Ethernet ·</span></header>
+    <main>
+        <section class="slide">
+            <p class="tag">01 / UVOD</p>
+            <h1>Kako podatci pronalaze svoje odredište?</h1>
+            <p class="lead">Ethernet, mrežni uređaji, MAC adrese i osnovna provjera povezanosti.</p>
+            <div class="network">
+                <div class="device">PC-A</div><span>⟷</span>
+                <div class="device switch">PREKLOPNIK</div><span>⟷</span>
+                <div class="device">PC-B</div>
+            </div>
+            <div class="callout">Pitanje za početak: kako preklopnik zna kojem računalu treba proslijediti podatke?
+            </div>
+            <p class="small">Navigacija: tipke ← →, razmak ili gumbi na dnu. Tipka F uključuje puni zaslon.</p>
+        </section>
+        <section class="slide">
+            <p class="tag">02 / CILJEVI</p>
+            <h2>Što ćemo moći nakon nastave?</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Razumjeti</h3>
+                    <ul>
+                        <li>Ulogu Etherneta u lokalnoj mreži.</li>
+                        <li>Razliku između preklopnika i usmjerivača.</li>
+                        <li>Osnovne dijelove Ethernet okvira.</li>
+                        <li>Kako nastaje MAC tablica.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Primijeniti</h3>
+                    <ul>
+                        <li>Pronaći IP i MAC adresu računala.</li>
+                        <li>Provjeriti povezanost naredbom ping.</li>
+                        <li>Pregledati MAC tablicu preklopnika.</li>
+                        <li>Pronaći jednostavnu pogrešku u mreži.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <section class="slide">
+            <p class="tag">03 / ETHERNET</p>
+            <h2>Ethernet: zajednička pravila komunikacije</h2>
+            <p>Ethernet je skup mrežnih standarda koji se često koristi za žično povezivanje uređaja u lokalnoj mreži
+                (LAN).</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Medij za prijenos</h3>
+                    <p>Uređaje možemo povezati bakrenim mrežnim kabelima ili optičkim vlaknima.</p>
+                </div>
+                <div class="card">
+                    <h3>Okvir za prijenos</h3>
+                    <p>Podatci se prenose u Ethernet okvirima. Okvir sadrži adrese potrebne za dostavu unutar lokalne
+                        mrežne veze.</p>
+                </div>
+            </div>
+            <div class="callout">Analogija: podatci su sadržaj pošiljke, a okvir je omotnica s adresama i dodatnim
+                informacijama.</div>
+        </section>
+        <section class="slide">
+            <p class="tag">04 / MREŽNI UREĐAJI</p>
+            <h2>Tko radi što u mreži?</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Mrežna kartica</h3>
+                    <p>Povezuje računalo s mrežom. Ethernet sučelje ima MAC adresu.</p>
+                </div>
+                <div class="card">
+                    <h3>Preklopnik · switch</h3>
+                    <p>Povezuje uređaje u lokalnoj mreži. Okvire prosljeđuje pomoću MAC tablice.</p>
+                </div>
+                <div class="card">
+                    <h3>Usmjerivač · router</h3>
+                    <p>Povezuje različite IP mreže. Odluke o prosljeđivanju IP paketa donosi na temelju odredišne IP
+                        adrese i tablice usmjeravanja.</p>
+                </div>
+                <div class="card">
+                    <h3>Pristupna točka · AP</h3>
+                    <p>Omogućuje bežičnim uređajima pristup lokalnoj mreži.</p>
+                </div>
+            </div>
+            <p class="small">Kućni „router” često objedinjuje usmjerivač, preklopnik i pristupnu točku u jednom kućištu.
+            </p>
+        </section>
+        <section class="slide">
+            <p class="tag">05 / ETHERNET OKVIR</p>
+            <h2>Što se nalazi u okviru?</h2>
+            <div class="frame">
+                <div>Odredišna MAC<small>6 bajtova</small></div>
+                <div>Izvorišna MAC<small>6 bajtova</small></div>
+                <div>EtherType<small>2 bajta</small></div>
+                <div>Podatci<small>promjenjivo</small></div>
+                <div>FCS<small>4 bajta</small></div>
+            </div>
+            <ul>
+                <li>Odredišna MAC: komu je okvir namijenjen na lokalnoj vezi?</li>
+                <li>Izvorišna MAC: koje je sučelje poslalo okvir?</li>
+                <li>EtherType: koju vrstu sadržaja okvir prenosi, primjerice IPv4.</li>
+                <li>FCS: služi otkrivanju pogrešaka u prenesenom okviru, ne njihovu ispravljanju.</li>
+            </ul>
+            <p class="small">Pojednostavljen prikaz Ethernet II okvira, bez preambule, SFD-a i mogućih VLAN oznaka.
+                Polje podataka može sadržavati i dopunu.</p>
+        </section>
+        <section class="slide">
+            <p class="tag">06 / ADRESE</p>
+            <h2>MAC adresa nije IP adresa</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>MAC adresa</h3>
+                    <pre>02:11:22:33:44:55</pre>
+                    <p>Uobičajena Ethernet MAC adresa ima 48 bitova: šest skupina po dvije heksadekadske znamenke.</p>
+                    <p>Heksadekadske znamenke: 0–9 i A–F.</p>
+                </div>
+                <div class="card">
+                    <h3>IPv4 adresa</h3>
+                    <pre>192.168.10.11</pre>
+                    <p>Logička adresa kojom se služimo u IP komunikaciji unutar mreža i između njih.</p>
+                    <p>U vježbi je postavljamo zajedno s maskom podmreže.</p>
+                </div>
+            </div>
+            <div class="callout">MAC adresu vežemo uz mrežno sučelje, ne nužno uz cijelo računalo. MAC adrese mogu se
+                softverski mijenjati.</div>
+        </section>
+        <section class="slide">
+            <p class="tag">07 / PREKLOPNIK I USMJERIVAČ</p>
+            <h2>Lokalna ili udaljena mreža?</h2>
+            <div class="card">
+                <h3>PC-A → PC-B u istoj podmreži</h3>
+                <p>Računalo šalje okvir prema MAC adresi računala PC-B. Preklopnik ga prosljeđuje odgovarajućim
+                    priključkom kada tu adresu poznaje.</p>
+            </div>
+            <div class="card">
+                <h3>PC-A → računalo u drugoj mreži</h3>
+                <p>Računalo šalje okvir prema MAC adresi zadanog pristupnika — najčešće lokalnog sučelja usmjerivača.
+                    Odredišna IP adresa paketa i dalje pripada udaljenom računalu.</p>
+            </div>
+            <p class="small">Vezu između IPv4 i MAC adrese u lokalnoj mreži računalo obično saznaje pomoću ARP-a.</p>
+        </section>
+        <section class="slide">
+            <p class="tag">08 / MAC TABLICA</p>
+            <h2>Preklopnik uči promatrajući promet</h2>
+            <div class="callout">Uči iz izvorišne MAC adrese. O prosljeđivanju odlučuje prema odredišnoj MAC adresi.
+            </div>
+            <ol>
+                <li>Primi okvir na jednom priključku.</li>
+                <li>Poveže izvorišnu MAC adresu s tim priključkom i VLAN-om.</li>
+                <li>Potraži odredišnu MAC adresu u tablici.</li>
+                <li>Ako je zna, prosljeđuje prema pripadajućem priključku. Ako je ne zna, šalje na ostale priključke
+                    istog VLAN-a, osim ulaznog.</li>
+            </ol>
+            <p class="small">Ako je poznato odredište na istom priključku kao izvor, okvir ne prosljeđuje natrag. Ovdje
+                sva računala pripadaju istom VLAN-u.</p>
+        </section>
+        <section class="slide">
+            <p class="tag">09 / INTERAKTIVNA DEMONSTRACIJA</p>
+            <h2>Izgradi MAC tablicu</h2>
+            <p>PC-A (AA) → priključak 1 · PC-B (BB) → priključak 2 · PC-C (CC) → priključak 3</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Slijed slanja okvira</h3>
+                    <p id="simText" aria-live="polite">Tablica je prazna. Što će se dogoditi kada A pošalje okvir prema
+                        B?</p><button class="primary" id="simNext" onclick="simStep()">Pošalji A → B</button> <button
+                        onclick="simReset()">Ponovi</button>
+                </div>
+                <div class="card">
+                    <h3>MAC tablica</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MAC</th>
+                                <th>Priključak</th>
+                            </tr>
+                        </thead>
+                        <tbody id="macRows">
+                            <tr>
+                                <td colspan="2">Nema naučenih adresa.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="small">AA, BB i CC su skraćene oznake za ovu vježbu, a ne potpune MAC adrese. Simulacija prikazuje
+                zadane Ethernet okvire, ne cijeli slijed ARP/ping komunikacije.</p>
+        </section>
+        <section class="slide">
+            <p class="tag">10 / RAD U PARU</p>
+            <h2>Predvidi prije nego provjeriš</h2>
+            <p>Krenite od prazne MAC tablice. Sva računala pripadaju istom VLAN-u.</p>
+            <table>
+                <tr>
+                    <th>Korak</th>
+                    <th>Okvir</th>
+                    <th>Što preklopnik uči?</th>
+                    <th>Kamo prosljeđuje?</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>C → A</td>
+                    <td>?</td>
+                    <td>?</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>A → C</td>
+                    <td>?</td>
+                    <td>?</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>B → A</td>
+                    <td>?</td>
+                    <td>?</td>
+                </tr>
+            </table>
+            <details>
+                <summary>Prikaži rješenje nakon rasprave</summary>
+                <ol>
+                    <li>Uči CC → 3; okvir šalje na priključke 1 i 2.</li>
+                    <li>Uči AA → 1; okvir šalje na priključak 3.</li>
+                    <li>Uči BB → 2; okvir šalje na priključak 1.</li>
+                </ol>
+            </details>
+        </section>
+        <section class="slide">
+            <p class="tag">11 / BRZA PROVJERA</p>
+            <h2>Iz koje adrese preklopnik uči?</h2>
+            <div class="choices" data-quiz><button onclick="answer(this,false)">Iz odredišne IP adrese.</button><button
+                    onclick="answer(this,true)">Iz izvorišne MAC adrese.</button><button onclick="answer(this,false)">Iz
+                    odredišne MAC adrese.</button></div>
+            <div class="feedback" aria-live="polite"></div>
+            <details>
+                <summary>Dodatna pitanja za razgovor</summary>
+                <ul>
+                    <li>Koji uređaj povezuje različite IP mreže?</li>
+                    <li>Što se događa ako odredišna MAC adresa nije poznata?</li>
+                    <li>Zašto preklopnik ne mora svaki okvir slati svim računalima?</li>
+                </ul>
+            </details>
+        </section>
+        <section class="slide">
+            <p class="tag">12 / PRAKTIČNA VJEŽBA</p>
+            <h2>Poveži, provjeri, objasni</h2>
+            <p>Radite u paru na fizičkoj mreži ili u Cisco Packet Traceru. Povežite tri računala na jedan preklopnik.
+            </p>
+            <table>
+                <tr>
+                    <th>Računalo</th>
+                    <th>IPv4 adresa</th>
+                    <th>Maska podmreže</th>
+                </tr>
+                <tr>
+                    <td>PC-A</td>
+                    <td>192.168.10.11</td>
+                    <td>255.255.255.0</td>
+                </tr>
+                <tr>
+                    <td>PC-B</td>
+                    <td>192.168.10.12</td>
+                    <td>255.255.255.0</td>
+                </tr>
+                <tr>
+                    <td>PC-C</td>
+                    <td>192.168.10.13</td>
+                    <td>255.255.255.0</td>
+                </tr>
+            </table>
+            <div class="callout">Za ovu lokalnu vježbu usmjerivač i zadani pristupnik nisu potrebni. Provjeravamo
+                komunikaciju unutar iste podmreže.</div>
+            <p class="small">Ne mijenjajte postavke školske produkcijske mreže. Koristite izdvojenu vježbovnu mrežu ili
+                simulator.</p>
+        </section>
+        <section class="slide">
+            <p class="tag">13 / MREŽNE POSTAVKE</p>
+            <h2>Pronađi adresu svog sučelja</h2>
+            <p>U Windows naredbenom retku ili na računalu u Packet Traceru upišite:</p>
+            <pre>ipconfig /all</pre>
+            <div class="grid">
+                <div class="card">
+                    <h3>Zapišite</h3>
+                    <ul>
+                        <li>IPv4 adresu.</li>
+                        <li>Masku podmreže.</li>
+                        <li>Fizičku (MAC) adresu Ethernet sučelja.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Obratite pozornost</h3>
+                    <p>Računalo može imati više sučelja. Odaberite ono spojeno na mrežu koju testirate.</p>
+                    <p>Usporedite rezultate s planom adresiranja.</p>
+                </div>
+            </div>
+        </section>
+        <section class="slide">
+            <p class="tag">14 / PROVJERA POVEZANOSTI</p>
+            <h2>Pošalji testni zahtjev naredbom ping</h2>
+            <p>Na računalu PC-A izvedite:</p>
+            <pre>ping 192.168.10.12
+ping 192.168.10.13</pre>
+            <div class="grid">
+                <div class="card">
+                    <h3>Odgovor je primljen</h3>
+                    <p>Odredište odgovara na ICMP zahtjev. Imamo dokaz IP povezanosti u trenutku testa.</p>
+                </div>
+                <div class="card">
+                    <h3>Odgovor nije primljen</h3>
+                    <p>Potrebna je daljnja provjera. Uzrok može biti kabel, postavke, isključeno računalo ili
+                        filtriranje ICMP prometa.</p>
+                </div>
+            </div>
+            <div class="callout">Neuspješan ping ne dokazuje sam po sebi da je kabel neispravan. U simulatoru prvi
+                pokušaj može zakasniti tijekom početnog razrješavanja adresa, ponovite test.</div>
+        </section>
+        <section class="slide">
+            <p class="tag">15 / PREGLED PREKLOPNIKA</p>
+            <h2>Poveži MAC adresu i priključak</h2>
+            <p>Nakon razmjene prometa na Cisco preklopniku otvorite CLI:</p>
+            <pre>enable
+show mac address-table</pre>
+            <p>Usporedite MAC adrese iz tablice s MAC adresama računala.</p>
+            <ul>
+                <li>Na kojem je priključku pronađen PC-B?</li>
+                <li>Je li tablica jednaka prije i nakon razmjene prometa?</li>
+                <li>Zašto neka adresa još nije naučena?</li>
+            </ul>
+            <p class="small">Prikaz i oznake priključaka ovise o modelu uređaja. Tablica može sadržavati i druge zapise.
+                Dinamički zapisi nisu trajni i nakon neaktivnosti mogu isteći.</p>
+        </section>
+        <section class="slide">
+            <p class="tag">16 / RADNI LIST</p>
+            <h2>Zabilježi dokaze, ne samo zaključak</h2>
+            <table>
+                <tr>
+                    <th>Provjera</th>
+                    <th>Upišite u bilježnicu</th>
+                </tr>
+                <tr>
+                    <td>Postavke PC-A</td>
+                    <td>IPv4, maska, MAC</td>
+                </tr>
+                <tr>
+                    <td>Ping prema PC-B</td>
+                    <td>Odgovara / ne odgovara</td>
+                </tr>
+                <tr>
+                    <td>Ping prema PC-C</td>
+                    <td>Odgovara / ne odgovara</td>
+                </tr>
+                <tr>
+                    <td>MAC tablica</td>
+                    <td>MAC računala PC-B i pripadajući priključak</td>
+                </tr>
+                <tr>
+                    <td>Objašnjenje</td>
+                    <td>Kako je preklopnik naučio taj zapis?</td>
+                </tr>
+            </table>
+            <p class="lead">U paru podijelite uloge: jedan učenik izvodi naredbe, drugi bilježi. Zatim zamijenite uloge.
+            </p>
+        </section>
+        <section class="slide">
+            <p class="tag">17 / PRONAĐI POGREŠKU</p>
+            <h2>Mreža je radila. Sada nešto ne radi.</h2>
+            <p>Imamo jednu pogrešku u izdvojenoj mreži ili simulatoru.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Redoslijed provjere</h3>
+                    <ol>
+                        <li>Je li uređaj uključen i povezan?</li>
+                        <li>Je li odredišna adresa dobro upisana?</li>
+                        <li>Odgovaraju li IP adresa i maska planu?</li>
+                        <li>Nakon ispravka: radi li ponovljeni ping?</li>
+                    </ol>
+                </div>
+                <div class="card">
+                    <h3>Izvještaj para</h3>
+                    <p>Što nije radilo?</p>
+                    <p>Što smo prvo provjerili?</p>
+                    <p>Koji smo uzrok pronašli?</p>
+                    <p>Kako smo potvrdili rješenje?</p>
+                </div>
+            </div>
+            <!-- <details>
+                <summary>Kartice za nastavnika — otvoriti nakon zadavanja</summary>
+                <ul>
+                    <li>PC-B: promijenite adresu u 192.168.20.12, uz masku 255.255.255.0.</li>
+                    <li>PC-C: odspojite mrežni kabel.</li>
+                    <li>Učeniku zadajte ping prema nepostojećoj adresi 192.168.10.99.</li>
+                </ul>
+                <p>Zadajte samo jednu pogrešku odjednom i prethodno potvrdite da ispravna mreža radi.</p>
+            </details> -->
+        </section>
+        <section class="slide">
+            <p class="tag">18 / PROVJERA RAZUMIJEVANJA</p>
+            <h2>Što zaključujemo iz neuspješnog pinga?</h2>
+            <div class="choices" data-quiz><button onclick="answer(this,false)">Mrežni kabel sigurno je
+                    neispravan.</button><button onclick="answer(this,false)">Preklopnik se mora
+                    zamijeniti.</button><button onclick="answer(this,true)">Odgovor nije primljen, potrebno je sustavno
+                    provjeriti moguće uzroke.</button></div>
+            <div class="feedback" aria-live="polite"></div>
+            <div class="callout">Pravilo dijagnostike: promijeni jednu stvar, ponovi test i zabilježi rezultat.</div>
+        </section>
+        <section class="slide">
+            <p class="tag">19 / IZLAZNA PROVJERA · 3 MIN</p>
+            <h2>Četiri pitanja za kraj</h2>
+            <ol>
+                <li>Po čemu se razlikuju preklopnik i usmjerivač?</li>
+                <li>Iz koje adrese preklopnik uči MAC tablicu?</li>
+                <li>Kojom naredbom provjeravaš osnovnu IP povezanost?</li>
+                <li>Navedi dvije stvari koje provjeravaš kada ping ne uspije.</li>
+            </ol>
+            <details>
+                <summary>Smjernice za provjeru odgovora</summary>
+                <ol>
+                    <li>Preklopnik u lokalnoj mreži prosljeđuje okvire prema MAC tablici, usmjerivač povezuje različite
+                        IP mreže.</li>
+                    <li>Iz izvorišne MAC adrese primljenog okvira.</li>
+                    <li>Naredbom ping uz odredišnu IP adresu.</li>
+                    <li>Primjerice: kabel i stanje veze, točnost adrese, IP postavke, dostupnost uređaja ili vatrozid.
+                    </li>
+                </ol>
+            </details>
+        </section>
+        <section class="slide">
+            <p class="tag">20 / SAŽETAK I NASTAVAK</p>
+            <h2>Od okvira do provjere povezanosti</h2>
+            <div class="callout">Ethernet okvir → MAC adrese → MAC tablica → prosljeđivanje → provjera povezanosti.
+            </div>
+            <p>Preklopnik ne mora unaprijed znati gdje se nalazi svako računalo: uči iz prometa koji prima.</p>
+            <div class="card">
+                <h3>Dodatni izazov</h3>
+                <p>Premjestite PC-B na drugi priključak. Predvidite što će se promijeniti u MAC tablici, pošaljite
+                    promet pa provjerite rezultat.</p>
+            </div>
+            <details>
+                <summary>Izvori i napomene</summary>
+                <p>Prezentacija je oblikovana prema navedenim materijalima. Za dodatno čitanje o
+                    prosljeđivanju i učenju MAC adresa:</p>
+                <ul>
+                    <li><a href="https://www.ciscopress.com/articles/article.asp?p=3089352&seqNum=6" target="_blank"
+                            rel="noopener">Cisco Press: The MAC Address Table</a></li>
+                    <li><a href="https://networklessons.com/switching/how-does-a-switch-learn-mac-addresses"
+                            target="_blank" rel="noopener">NetworkLessons: How a switch learns MAC addresses</a></li>
+                </ul>
+            </details>
+        </section>
+    </main>
+    <footer><span id="counter" aria-live="polite"></span><button id="prev" onclick="go(-1)"
+            aria-label="Prethodni slajd">← Natrag</button><button id="next" class="primary" onclick="go(1)"
+            aria-label="Sljedeći slajd">Dalje →</button><button onclick="fullscreen()"
+            aria-label="Puni zaslon">⛶</button></footer>
+    <script>
+        const slides = [...document.querySelectorAll('.slide')]; let current = 0; function render() { slides.forEach((s, i) => s.classList.toggle('active', i === current)); document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`; document.getElementById('progress').style.width = ((current + 1) / slides.length * 100) + '%'; document.getElementById('prev').disabled = current === 0; document.getElementById('next').disabled = current === slides.length - 1; window.scrollTo(0, 0) } function go(d) { current = Math.max(0, Math.min(slides.length - 1, current + d)); render() } function fullscreen() { if (document.fullscreenElement) { document.exitFullscreen?.() } else { document.documentElement.requestFullscreen?.().catch(() => { }) } } document.addEventListener('keydown', e => { if (['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'SUMMARY', 'A'].includes(document.activeElement.tagName)) return; if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1) } if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1) } if (e.key.toLowerCase() === 'f') fullscreen(); if (e.key === 'Home') { current = 0; render() } if (e.key === 'End') { current = slides.length - 1; render() } }); function answer(b, correct) { const section = b.closest('section'); section.querySelector('.feedback').textContent = correct ? 'Točno! Objasni svoj odgovor vlastitim riječima.' : 'Pokušaj ponovno. Prisjeti se što smo demonstrirali.'; b.style.borderColor = correct ? '#52dac7' : '#f9a385'; b.setAttribute('aria-pressed', 'true') }
+        let step = 0; const texts = ['Tablica je prazna. Što će se dogoditi kada A pošalje okvir prema B?', 'A → B: preklopnik uči AA → 1. BB nije poznat: šalje okvir na priključke 2 i 3.', 'B → A: preklopnik uči BB → 2. AA je poznat: šalje okvir samo na priključak 1.', 'A → B: odredište BB je poznato. Okvir ide samo na priključak 2.']; function updateSim() { document.getElementById('simText').textContent = texts[step]; document.getElementById('macRows').innerHTML = step === 0 ? '<tr><td colspan="2">Nema naučenih adresa.</td></tr>' : '<tr><td>AA</td><td>1</td></tr>' + (step >= 2 ? '<tr><td>BB</td><td>2</td></tr>' : ''); const b = document.getElementById('simNext'); b.textContent = ['Pošalji A → B', 'Pošalji B → A', 'Ponovno A → B', 'Demonstracija završena'][step]; b.disabled = step === 3 } function simStep() { step = Math.min(3, step + 1); updateSim() } function simReset() { step = 0; updateSim() } render();
+    </script>
+</body>
+
+</html>
